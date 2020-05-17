@@ -1,6 +1,6 @@
 # Loading packages needed below
 library(dplyr)
-library(tidry)
+library(tidyr)
 
 # Loading the raw data files.
 # Training files first
@@ -80,24 +80,24 @@ features<-read.table("../UCI_HAR_Dataset/features.txt")[,2] %>%
 # characters.  We'll use regular expressions to grab those
 # that involve the word Mean, mean, Std, or std.
 
-# The grep command will give us column numbers where these
+# The grep command will give us variable numbers where these
 # values occur. We save these under the variable name
-# "mean_std_columns_initial".
-mean_std_columns_initial<-grep("(.*[Mm]ean.*)|(.*[Ss]td.*)",
+# "mean_std_variable_numbers".
+mean_std_variable_numbers<-grep("(.*[Mm]ean.*)|(.*[Ss]td.*)",
                        features)
 
-alt_col_names<-paste("V",mean_std_columns_initial,sep="")
-
-# Keeping in mind that the first column of full_df is the
-# subject id, we want to shift these by 1.
-mean_std_columns<-mean_std_columns_initial + 1
+# Now using the paste command, we can append the "V" to the front
+# and have a vector of the appropriate column names that we
+# want to keep from full_df.
+variable_names_keep<-paste("V",mean_std_variable_numbers,sep="")
 
 # Lastly, we want to make sure we include our subject ID
 # and our activity.
-final_columns<-c(1,mean_std_columns,563)
-# Now we can subset our full_df to include only these columns:
+final_variables<-c("SubjectID",variable_names_keep,"Activity")
 
-df<-full_df[,final_columns]
+
+# Now we can subset our full_df to include only these variables:
+df<-full_df[,final_variables]
 
 
 ############
@@ -118,113 +118,73 @@ label_fxn<-function(n){
   activity.labels[n,2]
 }
 
+descriptiveActivity<-sapply(df$Activity,label_fxn)
+
+#Now we replace our activity column with this descriptive 
+# vector.
+df$Activity <- descriptiveActivity
 
 
 
 
-mean_std_columns<-grep("(.*[Mm]ean.*)|(.*[Ss]td.*)",
-     features_char)
+############
+## Step 4 ##
+############
 
-updated_Xtrain<-Xtrain[,mean_std_columns]
+# Appropriately labels the data set with descriptive variable names.
 
-# Add meaningful names, as provided by their own ReadMe
-# file.
-names(updated_Xtrain)<-grep("(.*[Mm]ean.*)|(.*[Ss]td.*)",
-                            features_char,
-                            value = T)
+# I'm not a physicist, so I'm going to assume that the variable
+# labels in features.txt are appropriately descriptive, and use
+# them.  Recall we already have the features as a character 
+# vector in R:
+features
 
-head(updated_Xtrain)
+# we also already have the variable numbers that we kept in 
+# selecting the columns of the accelerometer data.
+mean_std_variable_numbers
 
-dim(updated_Xtrain)
-dim(Ytrain)
-dim(Subtrain)
+# subsetting the features variable, we can select just those names:
+accelerometer_variable_names<-features[mean_std_variable_numbers]
+# At this point we can do a quick visual check to see all these
+# variables have Mean or STD in the name.
 
-# Probably want to rbind() the subject ID and
-# classification first, then run this whole 
-# analysis again with the test sets and cbind them.
+# Now we simply add these names to the middle vectors; i.e., NOT
+# the SubjectID or Activity.
+all_names<-c("SubjectID",accelerometer_variable_names,"Activity")
+names(df)<-all_names
 
-# first, let's clean up the levels of the Ytrain
-Ytrain$V1 %>% class()
-activity.labels<-read.table("../UCI_HAR_Dataset/activity_labels.txt")
-activity.labels
-label_fxn<-function(n){
-  activity.labels[n,2]
-}
+names(df)
 
-descriptiveYtrain<-sapply(Ytrain$V1,label_fxn)
-class(descriptiveYtrain)
+############
+## Step 5 ##
+############
 
-# dimensions still fit.
-descriptiveYtrain %>% length()
-dim(updated_Xtrain)
+# From the data set in step 4, creates a second, independent tidy 
+# data set with the average of each variable for each activity and 
+# each subject.
 
-train_df<-cbind(Subject_ID = Subtrain$V1,
-     updated_Xtrain,
-     Activity = descriptiveYtrain)
+# We start by putting the data frame into a longer format. Rather 
+# than 86 variables, we gather it into two variables kind and values
+# which tell us the "kind of measurement" and the "value for that 
+# measurement". We save this under the name long_df.
 
-train_df %>% names()
-
-# Repeating on test data stuff.
-
-updated_Xtest<-Xtest[,mean_std_columns]
-
-# Add meaningful names, as provided by their own ReadMe
-# file.
-names(updated_Xtest)<-grep("(.*[Mm]ean.*)|(.*[Ss]td.*)",
-                            features_char,
-                            value = T)
-
-head(updated_Xtest)
-
-#dimensions check
-dim(updated_Xtest)
-dim(Ytest)
-dim(Subtest)
-
-
-
-descriptiveYtest<-sapply(Ytest$V1,label_fxn)
-class(descriptiveYtest)
-
-# dimensions still fit.
-descriptiveYtest %>% length()
-dim(updated_Xtest)
-
-test_df<-cbind(Subject_ID = Subtest$V1,
-                updated_Xtest,
-                Activity = descriptiveYtest)
-
-test_df %>% dim()
-
-final_df<-rbind(train_df, test_df)
-names(final_df)
-
-
-# getting means of all columns except the Subject_ID
-# and Activity.
-
-# Currently in Side format, with measurements broken up over
-# columns
-library(tidyr)
-long_df<-final_df %>% 
+long_df<-df %>% 
   gather(kind, value,
-         -c(Subject_ID, Activity))
+         -c(SubjectID, Activity))
 
-format0<-long_df %>% group_by(Subject_ID, Activity, kind) %>% 
-  summarise(avg = mean(value))
+# Finally, we create our tidy data set of means for each person,
+# activity, and measurement type.
 
-format1<-long_df %>% group_by(Subject_ID, Activity, kind) %>% 
-  summarise(avg = mean(value)) %>%
-  spread(Activity,avg)
+tidyDataMeans<-long_df %>% 
+  group_by(SubjectID, Activity,kind) %>%
+  summarise(averageValue = mean(value))
+  
+# In our last step, we write this to a text file. 
+write.table(tidyDataMeans, "tidyDataMeans.txt",row.names = F)
 
-# data check
-format0 %>% group_by(Subject_ID, Activity) %>%
-  summarise(n()) %>% filter(Subject_ID ==6)
-
-length(mean_std_columns)
-
-#Notice that every subject is tested on each activity,
-# and we have an average recorded for each of the 
-# 86 different "meaningful" measuremnts.
-
-# Looks good.
+#test read:
+df2<-read.table("tidyDataMeans.txt",header = T)
+head(df2)
+names(df2)
+dim(df2)
+dim(tidyDataMeans)
