@@ -96,28 +96,27 @@ Finally, we assign `all_names` to our data frame `df`. (See *S4\_3*.)
 
 > From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
 
-We start by putting the data frame into a longer format. Rather than 86 variables, we gather it into two variables kind and values which tell us the "*kind* of measurement" and the "*value* for that  measurement". We save this under the name `long_df`.
+A tidy data frame, as I interpret it, would have the following variables:
 
-long_df<-df %>% 
-  gather(kind, value,
-         -c(SubjectID, Activity))
-
-# Finally, we create our tidy data set of means for each person,
-# activity, and measurement type.
-
-tidyDataMeans<-long_df %>% 
-  group_by(SubjectID, Activity,kind) %>%
-  summarise(averageValue = mean(value))
+  * `SubjectID`: indicates the subject for whom the data corresponds;
+  * `Activity`: indicates the activity the subject was doing when the accelerometer data was measured;
+  * `kind`: indicates the kind of accelerometer data recorded in that row;
+  * `averageValue`: the average value of the given *kind* of accelerometer data for that row.
   
-# In our last step, we write this to a text file. 
-write.table(tidyDataMeans, "tidyDataMeans.txt",row.names = F)
+To get a table in this form, we start by manipulating our data frame `df` so that it is in a longer format. (This will lend itself better to computations using the `dplyr`package.) 
 
-#test read:
-df2<-read.table("tidyDataMeans.txt",header = T)
-head(df2)
-names(df2)
-dim(df2)
-dim(tidyDataMeans)
+Rather than having 86 separate variables from the accelerometer, we *gather* these into two variables: "kind" and "values", which tell us 
+
+* the *kind* of measurement from the accelerometer, and 
+* the *value* for that  measurement.
+
+We save this under the name `long_df`. (See *S5\_1*.)
+
+Finally, we create our tidy data set of means for each person, activity, and measurement *kind* using the `group_by()` and `summarise()` functions from `dplyr`. I save the output under the name `tidyDataMeans`. (See *S5\_2*.)
+
+
+#### Supplementary Stuff
+The last bits of code in the `run_analysi.R` file just share how I wrote the `tidyDataMeans` data frame into a text file, and how to take the generated file and re-load it into R.
 
 
 
