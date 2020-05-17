@@ -116,7 +116,10 @@ Finally, we create our tidy data set of means for each person, activity, and mea
 
 
 #### Supplementary Stuff
-The last bits of code in the `run_analysi.R` file just share how I wrote the `tidyDataMeans` data frame into a text file, and how to take the generated file and re-load it into R.
+The last bits of code in the `run_analysis.R` file just share how I wrote the `tidyDataMeans` data frame into a text file, and how to take the generated file and re-load it into R.
 
+Reading generated file into R:
+
+`tidyDataMeans<-read.table("tidyDataMeans.txt",header = T)`
 
 
