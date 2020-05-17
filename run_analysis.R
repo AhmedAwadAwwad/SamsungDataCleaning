@@ -54,7 +54,7 @@ names(full_df)
 #############
 
 # S2_1
-features<-read.table("../UCI_HAR_Dataset/features.txt")[,2] %>%
+features<-read.table("UCI HAR Dataset/features.txt")[,2] %>%
   as.character()
 
 # S2_2a
@@ -76,7 +76,7 @@ df<-full_df[,final_variables]
 ############
 
 #S3_1
-activity.labels<-read.table("../UCI_HAR_Dataset/activity_labels.txt")
+activity.labels<-read.table("UCI HAR Dataset/activity_labels.txt")
 activity.labels
 label_fxn<-function(n){
   activity.labels[n,2]
@@ -128,3 +128,5 @@ write.table(tidyDataMeans, "tidyDataMeans.txt",row.names = F)
 
 # Code for reading the tidy data summary file just exported
 tidyDataMeans<-read.table("tidyDataMeans.txt",header = T)
+
+
