@@ -1,3 +1,2 @@
-# Samsung Data Cleaning Exercise Codebook.
-Author: Phil Lombardo
+# Samsung Data Cleaning Codebook
 
