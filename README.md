@@ -92,6 +92,8 @@ Finally, we assign `all_names` to our data frame `df`. (See *S4\_3*.)
 
 *Quick note:* The data frame `df` currently has all the data with which we have chosen to work. Our last step involves manipulating and summarizing this data.
 
+***
+
 #### Step 5
 
 > From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
